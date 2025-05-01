@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    
+    <!--Buscador de Personajes -->
+    <input type="text" id="search" placeholder="Buscador"> 
+
+
+    <!--Lista de Personajes -->
+    <div id="character-list" ></div>
+
+
+    <!--Traemos los personajes-->
+  <script>
+
+    let allCharacters = [];
+    let currentPage = 1;
+    let totalPages = 1;
+
+
+    // Función para obtener los personajes
+    function fetchCharacters(page = 1) {
+      fetch(`https://rickandmortyapi.com/api/character?page=${page}`)
+        .then(respuesta => respuesta.json()) 
+        .then(datos => {
+          const buscar = document.getElementById("search");
+
+          if (datos && datos.results) {
+            allCharacters = datos.results;
+            mostrarPersonajes(allCharacters);
+            totalPages = datos.info.pages;  // Actualizamos el número total de páginas
+          } else {
+            const personajes = document.getElementById("character-list");
+            personajes.innerHTML = "<p>No se pudieron cargar los personajes.</p>";
+          }
+
+          // Filtro en tiempo real
+          buscar.addEventListener("input", () => {
+            const texto = buscar.value.toLowerCase();
+            const personajesBuscados = allCharacters.filter(personaje =>
+              personaje.name.toLowerCase().includes(texto)
+            );
+            mostrarPersonajes(personajesBuscados);
+          });
+
+        })
+        .catch(error => console.log(error));
+    }
+
+    // Función para mostrar los personajes
+    function mostrarPersonajes(lista) {
+      const personajes = document.getElementById("character-list");
+      personajes.innerHTML = ""; // Limpiar el contenido
+
+      if (lista.length === 0) {
+        personajes.innerHTML = "<p>No se encontraron personajes.</p>";
+        return;
+      }
+
+      lista.forEach(personaje => {
+        const div = document.createElement("div");
+        div.classList.add("card");
+        div.innerHTML = `
+          <h3>${personaje.name}</h3>
+          <p>${personaje.species}</p>
+          <img src="${personaje.image}" alt="${personaje.name}">
+        `;
+        personajes.appendChild(div);
+      });
+    }
+
+    // Cargar los personajes al inicio
+    fetchCharacters(currentPage);
+
+  </script>
+
+  </body>
+</html>
